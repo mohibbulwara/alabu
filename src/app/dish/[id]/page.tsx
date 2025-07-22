@@ -3,7 +3,6 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getDishById, getDishes } from '@/lib/services/dish-service';
 import { getUserById } from '@/lib/services/user-service';
-import { incrementDishViewCount } from '@/lib/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import DishDetailClient from './dish-detail-client';
 

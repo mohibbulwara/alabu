@@ -17,7 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState, useTransition, useMemo } from 'react';
 import { Clock, Loader2, Image as ImageIcon, DollarSign, Upload, Trash2 } from 'lucide-react';
-import { uploadImage, updateProduct } from '@/lib/actions';
+import { uploadImage } from '@/lib/actions';
 import { getProductById } from '@/lib/services/product-service';
 import type { Product } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';

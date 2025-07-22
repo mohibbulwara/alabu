@@ -158,8 +158,7 @@ export async function updateUser(userId: string, userData: Partial<Pick<User, 'n
     }
 }
 
-
-export async function incrementProductViewCount(dishId: string) {
+export async function ProductViewCount(dishId: string) {
   if (!dishId) return;
   const dishRef = doc(db, 'dishes', dishId);
   try {
