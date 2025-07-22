@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import type { Product } from '@/types';
+import type { Dish as Product } from '@/types'; // Using Dish type for consistency, aliased as Product
 import { useCart } from '@/lib/hooks';
 import { useLanguage } from '@/lib/hooks';
 import RatingStars from './rating-stars';
@@ -39,7 +39,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Card className="group relative overflow-hidden rounded-lg border-border/20 transition-all duration-300 h-full flex flex-col hover:border-primary/50 hover:shadow-lg hover:-translate-y-1">
-      <Link href={`/product/${product.id}`} className="block">
+      <Link href={`/dish/${product.id}`} className="block">
         <div className="overflow-hidden aspect-[4/3] relative">
           <Image
             src={mainImage}
@@ -72,7 +72,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
           <h3 className="font-headline text-lg font-bold leading-tight text-foreground">
-            <Link href={`/product/${product.id}`} className="hover:text-primary transition-colors stretched-link">{product.name}</Link>
+            <Link href={`/dish/${product.id}`} className="hover:text-primary transition-colors stretched-link">{product.name}</Link>
           </h3>
           <p className="mt-1 text-sm text-muted-foreground h-10 overflow-hidden text-ellipsis">
             {product.description}
