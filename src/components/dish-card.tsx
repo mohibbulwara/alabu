@@ -73,7 +73,7 @@ export default function DishCard({ dish }: DishCardProps) {
           <h3 className="font-headline text-lg font-bold leading-tight text-foreground">
             <Link href={`/dish/${dish.id}`} className="hover:text-primary transition-colors stretched-link">{dish.name}</Link>
           </h3>
-          <p className="mt-1 text-sm text-muted-foreground h-10 overflow-hidden text-ellipsis">
+          <p className="mt-1 text-sm text-muted-foreground line-clamp-2 h-[40px]">
             {dish.description}
           </p>
         </div>
@@ -101,10 +101,10 @@ export default function DishCard({ dish }: DishCardProps) {
             >
               {isAvailable ? <>
                   <ShoppingCart className="h-4 w-4" />
-                  <span className="ml-2 text-sm font-semibold">{t('addToCart')}</span>
+                  <span className="ml-2 text-xs">{t('addToCart')}</span>
               </> : <>
                   <BadgeAlert className="h-4 w-4" />
-                  <span className="ml-2 text-sm font-semibold">Unavailable</span>
+                  <span className="ml-2 text-xs">Unavailable</span>
               </>}
           </Button>
         </div>

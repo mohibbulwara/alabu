@@ -49,7 +49,7 @@ export default function ProductList({ products, allSellers }: ProductListProps) 
   }, [products, searchTerm, selectedCategory, minRating]);
 
   const categorySellers = useMemo(() => {
-    if (selectedCategory === 'All') {
+    if (selectedCategory === 'All' || !allSellers) {
       return [];
     }
     const sellerIdsInCategory = new Set(
@@ -78,6 +78,29 @@ export default function ProductList({ products, allSellers }: ProductListProps) 
         </h1>
         <p className="text-muted-foreground mt-2">Find your next favorite meal from our curated collection.</p>
       </div>
+
+      <AnimatePresence>
+        {categorySellers.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+            className="mb-8"
+          >
+            <Card className="p-6 bg-secondary/30">
+              <h2 className="font-headline text-2xl font-bold mb-4 text-primary">
+                {selectedCategory} Sellers
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {categorySellers.map(seller => (
+                  <SellerCard key={seller.id} seller={seller} />
+                ))}
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <div className="mb-8 grid grid-cols-1 gap-6 rounded-lg border bg-card p-6 md:grid-cols-3 animated-card" style={{animationDelay: '100ms'}}>
         <div className="relative">
@@ -121,56 +144,24 @@ export default function ProductList({ products, allSellers }: ProductListProps) 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Main content */}
-        <div className="lg:col-span-3">
-            {filteredProducts.length > 0 ? (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredProducts.map((product, index) => (
-                    <motion.div 
-                        key={product.id} 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                    >
-                    <ProductCard product={product} />
-                    </motion.div>
-                ))}
-                </div>
-            ) : (
-                <div className="py-20 text-center animated-card">
-                <p className="text-lg text-muted-foreground">No products found. Try adjusting your filters.</p>
-                </div>
-            )}
-        </div>
-
-        {/* Sidebar */}
-        <aside className="lg:col-span-1">
-            <AnimatePresence>
-            {categorySellers.length > 0 && (
-                <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3 }}
-                    className="sticky top-24"
+        {filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredProducts.map((product, index) => (
+                <motion.div 
+                    key={product.id} 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
                 >
-                    <Card className="p-4">
-                        <h2 className="font-headline text-xl font-bold mb-4 text-primary">
-                            {selectedCategory} Sellers
-                        </h2>
-                        <div className="space-y-4">
-                            {categorySellers.map(seller => (
-                                <SellerCard key={seller.id} seller={seller} />
-                            ))}
-                        </div>
-                    </Card>
+                <ProductCard product={product} />
                 </motion.div>
-            )}
-            </AnimatePresence>
-        </aside>
-
-      </div>
+            ))}
+            </div>
+        ) : (
+            <div className="py-20 text-center animated-card">
+            <p className="text-lg text-muted-foreground">No products found. Try adjusting your filters.</p>
+            </div>
+        )}
     </div>
   );
 }

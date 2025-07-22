@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import type { Dish } from '@/types';
+import { useState, useMemo, useEffect, Suspense } from 'react';
+import type { Dish, User } from '@/types';
 import DishCard from './dish-card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, SlidersHorizontal } from 'lucide-react';
@@ -10,51 +10,75 @@ import DishFilters from './dish-filters';
 import { useSearchParams } from 'next/navigation';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { getAllSellers } from '@/lib/services/user-service';
+import SellerCard from './seller-card';
+import { Card } from './ui/card';
 
 interface AllDishesProps {
-  allDishes: Dish[];
+  dishes: Dish[];
 }
 
 const ITEMS_PER_PAGE = 9;
 
-export default function AllDishes({ allDishes }: AllDishesProps) {
+function AllDishesContent({ dishes }: AllDishesProps) {
   const searchParams = useSearchParams();
 
-  // Initialize state from URL params or defaults
+  // Local state for controlled components, initialized from URL
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [category, setCategory] = useState(searchParams.get('category') || 'All');
   const [rating, setRating] = useState(Number(searchParams.get('rating')) || 0);
   const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'rating-desc');
   const [currentPage, setCurrentPage] = useState(1);
+  const [allSellers, setAllSellers] = useState<User[]>([]);
+
+  useEffect(() => {
+    // This effect runs on the client to fetch all sellers
+    async function fetchSellers() {
+        const sellers = await getAllSellers();
+        setAllSellers(sellers);
+    }
+    fetchSellers();
+  }, []);
 
   const filteredDishes = useMemo(() => {
-    let dishes = [...allDishes];
+    let filtered = [...dishes];
 
     // Filter by search term
     if (searchTerm) {
-      dishes = dishes.filter(dish => dish.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      filtered = filtered.filter(dish => dish.name.toLowerCase().includes(searchTerm.toLowerCase()));
     }
     // Filter by category
     if (category !== 'All') {
-      dishes = dishes.filter(dish => dish.category === category);
+      filtered = filtered.filter(dish => dish.category === category);
     }
     // Filter by rating
     if (rating > 0) {
-      dishes = dishes.filter(dish => dish.rating >= rating);
+      filtered = filtered.filter(dish => dish.rating >= rating);
     }
     // Filter by availability
-    dishes = dishes.filter(dish => dish.isAvailable !== false);
+    filtered = filtered.filter(dish => dish.isAvailable !== false);
     
     // Sort results
     const [field, direction] = sortBy.split('-');
-    dishes.sort((a, b) => {
+    filtered.sort((a, b) => {
       let valA = a[field as keyof Dish] ?? 0;
       let valB = b[field as keyof Dish] ?? 0;
       return direction === 'desc' ? (valB as number) - (valA as number) : (valA as number) - (valB as number);
     });
 
-    return dishes;
-  }, [allDishes, searchTerm, category, rating, sortBy]);
+    return filtered;
+  }, [dishes, searchTerm, category, rating, sortBy]);
+
+  const categorySellers = useMemo(() => {
+    if (category === 'All' || allSellers.length === 0) {
+      return [];
+    }
+    const sellerIdsInCategory = new Set(
+      filteredDishes.map(p => p.sellerId)
+    );
+    return allSellers.filter(seller => sellerIdsInCategory.has(seller.id));
+  }, [filteredDishes, category, allSellers]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -67,16 +91,14 @@ export default function AllDishes({ allDishes }: AllDishesProps) {
     currentPage * ITEMS_PER_PAGE
   );
 
-
   return (
     <section className="bg-background py-16 md:py-24">
       <div className="container mx-auto">
         <div className="text-center mb-12">
           <div className="inline-block relative">
-            <h2 className="font-headline text-3xl font-extrabold md:text-5xl text-shadow-lg bg-gradient-to-r from-primary to-blue-400 text-transparent bg-clip-text pb-2">
+            <h2 className="font-headline text-3xl font-extrabold md:text-5xl bg-gradient-to-r from-primary to-blue-400 text-transparent bg-clip-text pb-2">
               <ShoppingBag className="h-6 w-6 md:h-8 md:w-8 text-primary inline-block mr-4 mb-2" />
               Explore Our Dishes
-              <ShoppingBag className="h-6 w-6 md:h-8 md:w-8 text-primary inline-block ml-4 mb-2" />
             </h2>
           </div>
           <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Find your next favorite meal from our curated collection.</p>
@@ -85,13 +107,29 @@ export default function AllDishes({ allDishes }: AllDishesProps) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Desktop Filters */}
             <aside className="hidden md:block md:col-span-1">
-                <div className="sticky top-24">
-                    <DishFilters
-                        searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                        category={category} setCategory={setCategory}
-                        rating={rating} setRating={setRating}
-                        sortBy={sortBy} setSortBy={setSortBy}
-                    />
+                <div className="sticky top-24 space-y-8">
+                    <DishFilters />
+                    <AnimatePresence>
+                    {categorySellers.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <Card className="p-4">
+                                <h2 className="font-headline text-xl font-bold mb-4 text-primary">
+                                    {category} Sellers
+                                </h2>
+                                <div className="space-y-4">
+                                    {categorySellers.map(seller => (
+                                        <SellerCard key={seller.id} seller={seller} />
+                                    ))}
+                                </div>
+                            </Card>
+                        </motion.div>
+                    )}
+                    </AnimatePresence>
                 </div>
             </aside>
 
@@ -105,21 +143,18 @@ export default function AllDishes({ allDishes }: AllDishesProps) {
                         Filters
                     </Button>
                     </SheetTrigger>
-                    <SheetContent>
+                    <SheetContent className="flex flex-col">
                         <SheetHeader>
                             <SheetTitle>Filters</SheetTitle>
                             <SheetDescription>
                                 Refine your search to find the perfect dish.
                             </SheetDescription>
                         </SheetHeader>
-                    <div className="py-4">
-                        <DishFilters 
-                             searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                             category={category} setCategory={setCategory}
-                             rating={rating} setRating={setRating}
-                             sortBy={sortBy} setSortBy={setSortBy}
-                        />
-                    </div>
+                        <ScrollArea className="flex-grow">
+                            <div className="py-4 pr-6">
+                                <DishFilters />
+                            </div>
+                        </ScrollArea>
                     </SheetContent>
                 </Sheet>
             </div>
@@ -184,4 +219,13 @@ export default function AllDishes({ allDishes }: AllDishesProps) {
       </div>
     </section>
   );
+}
+
+
+export default function AllDishes({ dishes }: AllDishesProps) {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <AllDishesContent dishes={dishes} />
+        </Suspense>
+    )
 }

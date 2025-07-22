@@ -1,39 +1,18 @@
 
 'use client';
 
-import { getAllSellers } from '@/lib/services/user-service';
 import SellerCard from './seller-card';
 import { ChefHat } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import type { User } from '@/types';
 import { Skeleton } from './ui/skeleton';
 import { motion } from 'framer-motion';
 
-export default function FeaturedSellers() {
-  const [featuredSellers, setFeaturedSellers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+interface FeaturedSellersProps {
+  sellers: User[];
+}
 
-  useEffect(() => {
-    const fetchSellers = async () => {
-      try {
-        const allSellers = await getAllSellers();
-        // Sort to show 'pro' sellers first, then limit to 3
-        const sortedSellers = allSellers
-          .sort((a, b) => {
-            if (a.planType === 'pro' && b.planType !== 'pro') return -1;
-            if (a.planType !== 'pro' && b.planType === 'pro') return 1;
-            return 0;
-          })
-          .slice(0, 3);
-        setFeaturedSellers(sortedSellers);
-      } catch (error) {
-        console.error("Failed to fetch featured sellers:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSellers();
-  }, []);
+export default function FeaturedSellers({ sellers }: FeaturedSellersProps) {
+  const loading = sellers.length === 0;
 
   const SellerSkeleton = () => (
     <div className="flex flex-col space-y-3">
@@ -68,7 +47,7 @@ export default function FeaturedSellers() {
           {loading ? (
             [...Array(3)].map((_, i) => <SellerSkeleton key={i} />)
           ) : (
-            featuredSellers.map((seller) => (
+            sellers.map((seller) => (
               <SellerCard key={seller.id} seller={seller} />
             ))
           )}

@@ -3,8 +3,8 @@
 
 import { createContext, useState, useMemo, ReactNode, useCallback, useEffect } from 'react';
 import { User } from '@/types';
-import { auth, db } from '@/firebase';
-import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth, db, googleProvider } from '@/firebase';
+import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
@@ -13,8 +13,10 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   login: (email: string, pass: string) => Promise<boolean>;
+  loginWithGoogle: () => Promise<boolean>;
   logout: () => void;
   register: (name: string, email: string, phone: string, pass: string, role: 'buyer' | 'seller', sellerDetails?: { shopName: string; shopAddress: string }) => Promise<boolean>;
+  sendPasswordReset: (email: string) => Promise<boolean>;
   refreshUser: () => Promise<void>;
 }
 
@@ -32,8 +34,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (userDocSnap.exists()) {
           setUser({ id: firebaseUser.uid, ...userDocSnap.data() } as User);
         } else {
-          // Handle case where user exists in Auth but not Firestore
-          setUser(null);
+          // This case handles users created via Google Sign-In who might not have a doc yet
+          // Let's create one for them.
+          const { displayName, email, photoURL } = firebaseUser;
+          if (email && displayName) {
+             const userData: Omit<User, 'id'> = {
+                name: displayName,
+                email: email,
+                role: 'buyer',
+                avatar: photoURL || `https://placehold.co/100x100.png?text=${displayName.charAt(0)}`,
+                createdAt: serverTimestamp(),
+              };
+              await setDoc(doc(db, "users", firebaseUser.uid), userData);
+              setUser({ id: firebaseUser.uid, ...userData } as User);
+          } else {
+             setUser(null);
+          }
         }
       } else {
         setUser(null);
@@ -61,6 +77,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return false;
     }
   }, [toast]);
+  
+  const loginWithGoogle = useCallback(async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      // The onAuthStateChanged listener will handle the user doc creation/fetching.
+      return true;
+    } catch (error: any) {
+      toast({ title: "Google Sign-In Failed", description: error.message, variant: 'destructive' });
+      return false;
+    }
+  }, [toast]);
+
 
   const logout = useCallback(async () => {
     try {
@@ -87,8 +115,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (role === 'seller') {
           userData.shopName = sellerDetails?.shopName;
           userData.shopAddress = sellerDetails?.shopAddress;
-          userData.planType = 'free';
+          userData.planType = 'pro'; // All new sellers get pro plan
           userData.productUploadCount = 0;
+          userData.deliveredOrderCount = 0;
       }
 
       await setDoc(doc(db, "users", firebaseUser.uid), userData);
@@ -100,6 +129,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [toast]);
 
+  const sendPasswordReset = useCallback(async (email: string) => {
+    try {
+        await sendPasswordResetEmail(auth, email);
+        return true;
+    } catch(error: any) {
+        toast({ title: "Password Reset Failed", description: error.message, variant: 'destructive' });
+        return false;
+    }
+  }, [toast]);
+
   const isAuthenticated = !!user;
 
   const value = useMemo(() => ({
@@ -107,10 +146,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated,
     loading,
     login,
+    loginWithGoogle,
     logout,
     register,
+    sendPasswordReset,
     refreshUser,
-  }), [user, isAuthenticated, loading, login, logout, register, refreshUser]);
+  }), [user, isAuthenticated, loading, login, loginWithGoogle, logout, register, sendPasswordReset, refreshUser]);
 
   return (
     <AuthContext.Provider value={value}>
@@ -118,5 +159,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </AuthContext.Provider>
   );
 }
-
-    

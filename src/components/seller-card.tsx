@@ -3,10 +3,10 @@
 
 import Link from 'next/link';
 import type { User } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
-import { Star, ShoppingBag } from 'lucide-react';
+import SellerStatusBadge from './seller-status-badge';
 
 interface SellerCardProps {
   seller: User;
@@ -29,11 +29,7 @@ export default function SellerCard({ seller }: SellerCardProps) {
               <CardTitle className="font-headline text-md group-hover:text-primary transition-colors">{seller.shopName}</CardTitle>
               <p className="text-xs text-muted-foreground">by {seller.name}</p>
             </div>
-            {seller.planType === 'pro' && (
-                <div className="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-xs font-bold text-primary border border-primary/20">
-                    <Star className="h-3 w-3" />
-                </div>
-            )}
+            {seller.status && <SellerStatusBadge status={seller.status} />}
           </CardHeader>
         </Card>
       </Link>

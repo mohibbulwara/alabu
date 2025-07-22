@@ -1,19 +1,23 @@
 
-import { Suspense } from 'react';
-import { getDishes } from '@/lib/services/dish-service';
-import type { SearchParams } from '@/types';
-import AllDishes from '@/components/all-dishes';
+'use client';
+// This page is now redundant as the main page handles dish listing.
+// We can redirect or show a simplified version. For now, let's redirect.
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
-// This page can now be removed or simplified if the homepage handles everything.
-// For now, let's make it also use the AllDishes component for consistency.
-export default async function DishesPage({ searchParams }: { searchParams: SearchParams }) {
-    const dishes = await getDishes(searchParams);
+export default function DishesRedirectPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams.toString());
+        router.replace('/' + (params.toString() ? '?' + params.toString() : ''));
+    }, [router, searchParams]);
 
     return (
-        <div className="container mx-auto py-8">
-            <Suspense>
-                <AllDishes allDishes={dishes} />
-            </Suspense>
+        <div className="container mx-auto py-12 text-center">
+            <p>Redirecting to the main page...</p>
         </div>
     );
 }

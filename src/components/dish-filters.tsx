@@ -10,32 +10,53 @@ import { X, Search } from 'lucide-react';
 import { categories } from '@/lib/data';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useState, useEffect } from 'react';
+import { useDebounce } from 'use-debounce';
 
 const categoryNames = ['All', ...categories.map(c => c.name)];
 
-interface DishFiltersProps {
-    searchTerm: string;
-    setSearchTerm: (value: string) => void;
-    category: string;
-    setCategory: (value: string) => void;
-    rating: number;
-    setRating: (value: number) => void;
-    sortBy: string;
-    setSortBy: (value: string) => void;
-}
-
-export default function DishFilters({
-    searchTerm,
-    setSearchTerm,
-    category,
-    setCategory,
-    rating,
-    setRating,
-    sortBy,
-    setSortBy
-}: DishFiltersProps) {
+export default function DishFilters() {
     const { t } = useLanguage();
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    // Local state for controlled components, initialized from URL
+    const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+    const [category, setCategory] = useState(searchParams.get('category') || 'All');
+    const [rating, setRating] = useState(Number(searchParams.get('rating')) || 0);
+    const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'rating-desc');
     
+    const [debouncedSearch] = useDebounce(searchTerm, 500);
+
+    const createQueryString = useCallback(
+        (paramsToUpdate: Record<string, string | number | undefined>) => {
+          const params = new URLSearchParams(searchParams.toString())
+          
+          for (const [name, value] of Object.entries(paramsToUpdate)) {
+            if (value !== undefined && value !== null && String(value).length > 0) {
+                params.set(name, String(value));
+            } else {
+                params.delete(name);
+            }
+          }
+     
+          return params.toString()
+        },
+        [searchParams]
+    );
+
+    useEffect(() => {
+        const query = createQueryString({ 
+            search: debouncedSearch ? debouncedSearch : undefined,
+            category: category === 'All' ? undefined : category,
+            rating: rating > 0 ? rating : undefined,
+            sortBy: sortBy,
+        });
+        router.replace(pathname + (query ? '?' + query : ''), { scroll: false });
+    }, [debouncedSearch, category, rating, sortBy, router, pathname, createQueryString]);
+
     const clearFilters = () => {
         setSearchTerm('');
         setCategory('All');

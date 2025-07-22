@@ -2,10 +2,11 @@
 'use server';
 
 import { v2 as cloudinary } from 'cloudinary';
-import { addDoc, collection, serverTimestamp, doc, runTransaction, updateDoc, writeBatch } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, doc, runTransaction, updateDoc, writeBatch, increment } from 'firebase/firestore';
 import { db } from '@/firebase';
-import type { User, Product } from '@/types';
+import type { User, Dish } from '@/types';
 import { getAllBuyers } from './services/user-service';
+// import { analyzeDishForApproval } from '@/ai/flows/dish-approval-flow';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -45,13 +46,13 @@ export async function uploadImage(formData: FormData) {
   }
 }
 
-export async function addProduct(productData: any, userId: string) {
-    const { name, description, price, category, deliveryTime, image, commissionPercentage } = productData;
+export async function addDish(dishData: any, userId: string) {
+    const { name, description, price, originalPrice, category, deliveryTime, images, commissionPercentage, tags } = dishData;
 
     try {
         const userRef = doc(db, "users", userId);
         
-        const { newProductId, sellerData } = await runTransaction(db, async (transaction) => {
+        const { newDishId, sellerData } = await runTransaction(db, async (transaction) => {
             const userDoc = await transaction.get(userRef);
             if (!userDoc.exists()) {
                 throw "User does not exist!";
@@ -59,41 +60,40 @@ export async function addProduct(productData: any, userId: string) {
             
             const userData = userDoc.data() as User;
             const currentUploads = userData.productUploadCount || 0;
-            
-            if (userData.planType === 'free' && currentUploads >= 5) {
-                throw "Upload limit for free plan reached.";
-            }
 
-            const productDocRef = doc(collection(db, "products"));
-            transaction.set(productDocRef, {
+            const dishDocRef = doc(collection(db, "dishes"));
+
+            transaction.set(dishDocRef, {
                 name,
                 description,
                 price: Number(price),
+                originalPrice: originalPrice ? Number(originalPrice) : null,
                 category,
                 deliveryTime,
-                image, // This is the Cloudinary URL
+                images, // This is the array of Cloudinary URLs
                 commissionPercentage: Number(commissionPercentage),
+                tags: tags || [],
                 sellerId: userId,
-                rating: Math.floor(Math.random() * 3) + 3, // Random initial rating between 3 and 5
+                rating: Math.floor(Math.random() * 3) + 3,
                 createdAt: serverTimestamp(),
-                isAvailable: true, // New products are available by default
+                isAvailable: true,
+                approvalStatus: 'approved', // Dishes are auto-approved for now
+                viewCount: 0,
             });
 
-            // Increment productUploadCount
             transaction.update(userRef, { productUploadCount: currentUploads + 1 });
 
-            return { newProductId: productDocRef.id, sellerData: userData };
+            return { newDishId: dishDocRef.id, sellerData: userData };
         });
         
-        // After transaction is successful, create notifications for all buyers
         const buyers = await getAllBuyers();
         const notificationBatch = writeBatch(db);
         buyers.forEach(buyer => {
             const notificationRef = doc(collection(db, 'notifications'));
             notificationBatch.set(notificationRef, {
                 userId: buyer.id,
-                productId: newProductId,
-                message: `New product added: ${name} by ${sellerData.shopName || sellerData.name}`,
+                dishId: newDishId,
+                message: `New dish added: ${name} by ${sellerData.shopName || sellerData.name}`,
                 type: 'new-product',
                 createdAt: serverTimestamp(),
                 isRead: false,
@@ -102,33 +102,37 @@ export async function addProduct(productData: any, userId: string) {
         await notificationBatch.commit();
 
 
-        return { success: true, productId: newProductId };
+        return { success: true, dishId: newDishId };
     } catch (error: any) {
-        console.error("Error adding product transactionally: ", error);
-        return { error: typeof error === 'string' ? error : "Failed to add product." };
+        console.error("Error adding dish transactionally: ", error);
+        return { error: typeof error === 'string' ? error : "Failed to add dish." };
     }
 }
 
-export async function updateProduct(productId: string, productData: Partial<Product>) {
-    const productRef = doc(db, "products", productId);
+export async function updateDish(dishId: string, dishData: Partial<Dish>) {
+    const dishRef = doc(db, "dishes", dishId);
 
     try {
         const dataToUpdate: Record<string, any> = {};
 
-        if (productData.name !== undefined) dataToUpdate.name = productData.name;
-        if (productData.description !== undefined) dataToUpdate.description = productData.description;
-        if (productData.price !== undefined) dataToUpdate.price = Number(productData.price);
-        if (productData.category !== undefined) dataToUpdate.category = productData.category;
-        if (productData.deliveryTime !== undefined) dataToUpdate.deliveryTime = productData.deliveryTime;
-        if (productData.image !== undefined) dataToUpdate.image = productData.image;
-        if (productData.commissionPercentage !== undefined) dataToUpdate.commissionPercentage = Number(productData.commissionPercentage);
-        if (productData.isAvailable !== undefined) dataToUpdate.isAvailable = productData.isAvailable;
+        if (dishData.name !== undefined) dataToUpdate.name = dishData.name;
+        if (dishData.description !== undefined) dataToUpdate.description = dishData.description;
+        if (dishData.price !== undefined) dataToUpdate.price = Number(dishData.price);
+        if (dishData.originalPrice !== undefined) dataToUpdate.originalPrice = dishData.originalPrice ? Number(dishData.originalPrice) : null;
+        if (dishData.category !== undefined) dataToUpdate.category = dishData.category;
+        if (dishData.deliveryTime !== undefined) dataToUpdate.deliveryTime = dishData.deliveryTime;
+        if (dishData.images !== undefined) dataToUpdate.images = dishData.images;
+        if (dishData.commissionPercentage !== undefined) dataToUpdate.commissionPercentage = Number(dishData.commissionPercentage);
+        if (dishData.tags !== undefined) dataToUpdate.tags = dishData.tags;
+        if (dishData.isAvailable !== undefined) dataToUpdate.isAvailable = dishData.isAvailable;
+        if (dishData.approvalStatus !== undefined) dataToUpdate.approvalStatus = dishData.approvalStatus;
+        if (dishData.approvalReason !== undefined) dataToUpdate.approvalReason = dishData.approvalReason;
 
-        await updateDoc(productRef, dataToUpdate);
+        await updateDoc(dishRef, dataToUpdate);
         return { success: true };
     } catch (error) {
-        console.error("Error updating product: ", error);
-        return { error: "Failed to update product." };
+        console.error("Error updating dish: ", error);
+        return { error: "Failed to update dish." };
     }
 }
 
@@ -152,4 +156,19 @@ export async function updateUser(userId: string, userData: Partial<Pick<User, 'n
         console.error("Error updating user: ", error);
         return { error: "Failed to update profile." };
     }
+}
+
+
+export async function incrementDishViewCount(dishId: string) {
+  if (!dishId) return;
+  const dishRef = doc(db, 'dishes', dishId);
+  try {
+    // Use the atomic `increment` operation from Firestore
+    await updateDoc(dishRef, {
+      viewCount: increment(1)
+    });
+  } catch (error) {
+    // Log the error but don't block the user from seeing the page.
+    console.error("Failed to increment dish view count for dish " + dishId, error);
+  }
 }
