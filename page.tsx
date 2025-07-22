@@ -1,5 +1,6 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase-config'; // Make sure this path is correct
+import { incrementProductViewCount } from '@/lib/actions';
 import type { Dish } from '@/types';
 import { notFound } from 'next/navigation';
 import RatingStars from '@/components/rating-stars';
@@ -32,21 +33,34 @@ async function getDish(dishId: string): Promise<Dish | null> {
 }
 
 export default async function DishDetailsPage({ params }: { params: { dishId: string } }) {
+  // Increment view count without blocking the page render.
+  // This is a "fire-and-forget" action.
+  incrementProductViewCount(params.dishId);
+
   const dish = await getDish(params.dishId);
   if (!dish) {
     notFound();
   }
 
-  // Fetch seller and related dishes in parallel
-  const [seller, allRelatedDishes] = await Promise.all([
-    dish.sellerId ? getUserById(dish.sellerId) : Promise.resolve(null),
-    // Only fetch related dishes if a category exists to prevent server errors.
-    dish.category ? getDishes({ category: dish.category, limit: 5 }) : Promise.resolve([])
-  ]);
+  // Fetch seller and related dishes, but don't let it crash the page if it fails.
+  let seller = null;
+  let relatedDishes: Dish[] = [];
 
-  const relatedDishes = (allRelatedDishes || [])
-    .filter(d => d.id !== dish.id)
-    .slice(0, 4);
+  try {
+    const [fetchedSeller, allRelatedDishes] = await Promise.all([
+      dish.sellerId ? getUserById(dish.sellerId) : Promise.resolve(null),
+      // Only fetch related dishes if a category exists to prevent server errors.
+      dish.category ? getDishes({ category: dish.category, limit: 5 }) : Promise.resolve([])
+    ]);
+
+    seller = fetchedSeller;
+    relatedDishes = (allRelatedDishes || [])
+      .filter(d => d.id !== dish.id)
+      .slice(0, 4);
+  } catch (error) {
+    console.error("Error fetching related data for dish page:", error);
+    // The page will still render, just without seller info or related dishes.
+  }
 
   const isDiscount = dish.originalPrice && dish.originalPrice > dish.price;
 
@@ -73,7 +87,7 @@ export default async function DishDetailsPage({ params }: { params: { dishId: st
             {seller && (
               <Link href={`/seller/${seller.id}`} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
                 <ChefHat className="h-5 w-5 text-primary" />
-                <span>From {seller.shopName}</span>
+                <span>From {seller.shopName || seller.name}</span>
               </Link>
             )}
           </div>
