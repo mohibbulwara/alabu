@@ -1,0 +1,100 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 98%; /* Lighter Cream */
+    --foreground: 20 14% 21%; /* Dark Brown */
+    
+    --card: 40 50% 100%; /* White */
+    --card-foreground: 20 14% 21%;
+    
+    --popover: 40 50% 100%;
+    --popover-foreground: 20 14% 21%;
+    
+    --primary: 340 90% 80%; /* Sweeter Pastel Pink */
+    --primary-foreground: 20 14% 15%;
+
+    --secondary: 340 40% 94%; /* Lighter Pink */
+    --secondary-foreground: 20 14% 21%;
+    
+    --muted: 340 30% 92%;
+    --muted-foreground: 20 14% 45%;
+    
+    --accent: 340 30% 92%;
+    --accent-foreground: 20 14% 21%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 340 30% 88%;
+    --input: 340 30% 94%;
+    --ring: 340 90% 80%;
+
+    --radius: 1rem;
+
+    --chart-1: 340 82% 76%;
+    --chart-2: 190 70% 65%;
+    --chart-3: 45 90% 65%;
+    --chart-4: 280 85% 75%;
+    --chart-5: 158 75% 65%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%; /* Deep Dark Purple */
+    --foreground: 210 40% 98%;
+    
+    --card: 240 4% 10%; /* Slightly lighter dark purple */
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 210 40% 98%;
+    
+    --primary: 340 90% 65%; /* Vibrant Sweet Pink */
+    --primary-foreground: 340 100% 15%;
+
+    --secondary: 240 4% 15%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 240 4% 15%;
+    --muted-foreground: 215 21% 65%;
+    
+    --accent: 240 4% 20%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 240 4% 15%;
+    --input: 240 4% 12%;
+    --ring: 340 90% 65%;
+
+    --chart-1: 340 82% 76%;
+    --chart-2: 190 70% 65%;
+    --chart-3: 45 90% 65%;
+    --chart-4: 280 85% 75%;
+    --chart-5: 158 75% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.animated-card {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.text-shadow-lg {
+  text-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
