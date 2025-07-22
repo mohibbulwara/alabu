@@ -109,7 +109,7 @@ export async function addDish(dishData: any, userId: string) {
     }
 }
 
-export async function updateDish(dishId: string, dishData: Partial<Dish>) {
+export async function updateProduct(dishId: string, dishData: Partial<Dish>) {
     const dishRef = doc(db, "dishes", dishId);
 
     try {
@@ -132,7 +132,7 @@ export async function updateDish(dishId: string, dishData: Partial<Dish>) {
         return { success: true };
     } catch (error) {
         console.error("Error updating dish: ", error);
-        return { error: "Failed to update dish." };
+        return { error: "Failed to update product." };
     }
 }
 
@@ -159,7 +159,7 @@ export async function updateUser(userId: string, userData: Partial<Pick<User, 'n
 }
 
 
-export async function incrementDishViewCount(dishId: string) {
+export async function incrementProductViewCount(dishId: string) {
   if (!dishId) return;
   const dishRef = doc(db, 'dishes', dishId);
   try {
@@ -169,6 +169,6 @@ export async function incrementDishViewCount(dishId: string) {
     });
   } catch (error) {
     // Log the error but don't block the user from seeing the page.
-    console.error("Failed to increment dish view count for dish " + dishId, error);
+    console.error("Failed to increment product view count for dish " + dishId, error);
   }
 }
