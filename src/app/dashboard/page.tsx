@@ -121,7 +121,13 @@ export default function DashboardPage() {
   
   const salesData = deliveredOrders.reduce((acc, order) => {
     if (!order.createdAt) return acc;
-    const orderDate = new Date(order.createdAt as string); // Handle serialized string
+    // Handle both Firestore Timestamps and serialized date strings
+    const orderDate = typeof order.createdAt === 'string' 
+        ? new Date(order.createdAt) 
+        : (order.createdAt as any).toDate();
+
+    if (isNaN(orderDate.getTime())) return acc; // Invalid date
+
     const month = format(orderDate, 'MMM yyyy');
     const sellerItemsTotal = order.items.reduce((itemAcc, item) => itemAcc + item.price * item.quantity, 0);
 

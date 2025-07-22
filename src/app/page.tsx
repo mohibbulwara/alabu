@@ -10,6 +10,11 @@ import { getAllSellers } from '@/lib/services/user-service';
 import { categories } from '@/lib/data';
 import AllDishes from '@/components/all-dishes';
 
+function AllDishesLoading() {
+  // You can create a more sophisticated loading skeleton here
+  return <div className="container py-12 text-center">Loading dishes...</div>;
+}
+
 export default async function HomePage() {
   const [allDishesData, allSellers] = await Promise.all([
     getDishes(),
@@ -27,7 +32,9 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col">
       <HeroSection />
-      <AllDishes allDishes={allDishesData} />
+      <Suspense fallback={<AllDishesLoading />}>
+        <AllDishes allDishes={allDishesData} />
+      </Suspense>
       <CategoryShowcase categories={categories} />
       <FeaturedSellers sellers={featuredSellers} />
       <Testimonials />

@@ -109,7 +109,7 @@ export async function addDish(dishData: any, userId: string) {
     }
 }
 
-export async function updateProduct(dishId: string, dishData: Partial<Dish>) {
+export async function updateDish(dishId: string, dishData: Partial<Dish>) {
     const dishRef = doc(db, "dishes", dishId);
 
     try {
@@ -158,7 +158,7 @@ export async function updateUser(userId: string, userData: Partial<Pick<User, 'n
     }
 }
 
-export async function ProductViewCount(dishId: string) {
+export async function incrementProductViewCount(dishId: string) {
   if (!dishId) return;
   const dishRef = doc(db, 'dishes', dishId);
   try {
