@@ -40,10 +40,11 @@ export default async function DishDetailsPage({ params }: { params: { dishId: st
   // Fetch seller and related dishes in parallel
   const [seller, allRelatedDishes] = await Promise.all([
     dish.sellerId ? getUserById(dish.sellerId) : Promise.resolve(null),
-    getDishes({ category: dish.category, limit: 5 })
+    // Only fetch related dishes if a category exists to prevent server errors.
+    dish.category ? getDishes({ category: dish.category, limit: 5 }) : Promise.resolve([])
   ]);
 
-  const relatedDishes = allRelatedDishes
+  const relatedDishes = (allRelatedDishes || [])
     .filter(d => d.id !== dish.id)
     .slice(0, 4);
 
