@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useLanguage } from '@/lib/hooks';
@@ -28,7 +27,7 @@ export default function Footer() {
             <div>
                 <h4 className="font-semibold mb-4 text-foreground">Quick Links</h4>
                 <ul className="space-y-2">
-                    <li><Link href="/dishes" className="text-sm text-muted-foreground hover:text-primary">Dishes</Link></li>
+                    <li><Link href="/products" className="text-sm text-muted-foreground hover:text-primary">Products</Link></li>
                     <li><Link href="/cart" className="text-sm text-muted-foreground hover:text-primary">My Cart</Link></li>
                     <li><Link href="/register" className="text-sm text-muted-foreground hover:text-primary">Become a Seller</Link></li>
                 </ul>
@@ -36,15 +35,15 @@ export default function Footer() {
             <div>
                 <h4 className="font-semibold mb-4 text-foreground">Support</h4>
                 <ul className="space-y-2">
-                    <li><Link href="/faq" className="text-sm text-muted-foreground hover:text-primary">FAQ</Link></li>
-                    <li><Link href="/contact" className="text-sm text-muted-foreground hover:text-primary">Contact Us</Link></li>
+                    <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">FAQ</Link></li>
+                    <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Contact Us</Link></li>
                 </ul>
             </div>
              <div>
                 <h4 className="font-semibold mb-4 text-foreground">Legal</h4>
                 <ul className="space-y-2">
-                    <li><Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
-                    <li><Link href="/terms-of-service" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</Link></li>
+                    <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
+                    <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary">Terms of Service</Link></li>
                 </ul>
             </div>
         </div>

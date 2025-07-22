@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
-import type { Dish, User } from '@/types';
-import DishCard from './dish-card';
+import { useState, useMemo, useEffect } from 'react';
+import type { Product, User } from '@/types';
+import ProductCard from '@/components/product-card';
 import { useLanguage } from '@/lib/hooks';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,7 +21,7 @@ import { categories } from '@/lib/data';
 const categoryNames = ['All', ...categories.map(c => c.name)];
 
 interface ProductListProps {
-  products: Dish[];
+  products: Product[];
   allSellers: User[];
 }
 
@@ -34,8 +34,12 @@ export default function ProductList({ products, allSellers }: ProductListProps) 
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [minRating, setMinRating] = useState(0);
 
-  const filteredDishes = useMemo(() => {
-    return products.filter((product: Dish) => {
+  useEffect(() => {
+    setSelectedCategory(initialCategory);
+  }, [initialCategory]);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product: Product) => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
       const matchesRating = product.rating >= minRating;
@@ -120,16 +124,16 @@ export default function ProductList({ products, allSellers }: ProductListProps) 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Main content */}
         <div className="lg:col-span-3">
-            {filteredDishes.length > 0 ? (
+            {filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredDishes.map((product, index) => (
+                {filteredProducts.map((product, index) => (
                     <motion.div 
                         key={product.id} 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
                     >
-                    <DishCard dish={product} />
+                    <ProductCard product={product} />
                     </motion.div>
                 ))}
                 </div>
@@ -153,7 +157,7 @@ export default function ProductList({ products, allSellers }: ProductListProps) 
                 >
                     <Card className="p-4">
                         <h2 className="font-headline text-xl font-bold mb-4 text-primary">
-                            Sellers in {selectedCategory}
+                            {selectedCategory} Sellers
                         </h2>
                         <div className="space-y-4">
                             {categorySellers.map(seller => (

@@ -1,18 +1,37 @@
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { generateCollection, type GenerateCollectionOutput } from '@/ai/flows/generate-collection-flow';
+import { Sparkles, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 export default function TodaysSpecial() {
+  const [collection, setCollection] = useState<GenerateCollectionOutput | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const collection = {
-    title: "Weekend Brunch Favorites",
-    description: "Delicious and hearty options perfect for a lazy weekend brunch. Explore our best sellers!"
-  };
+  useEffect(() => {
+    const fetchCollection = async () => {
+      setLoading(true);
+      try {
+        const result = await generateCollection();
+        setCollection(result);
+      } catch (error) {
+        console.error("Failed to generate collection:", error);
+        // Fallback content
+        setCollection({
+          title: "Dinner Delights",
+          description: "Explore a variety of delicious options perfect for your evening meal."
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCollection();
+  }, []);
 
   return (
     <section className="bg-secondary/50">
@@ -39,10 +58,10 @@ export default function TodaysSpecial() {
                     <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-primary" />
                 </motion.div>
                  <CardTitle className="text-2xl md:text-3xl font-bold text-primary pt-2">
-                    {collection?.title}
+                    {loading ? <Loader2 className="mx-auto h-8 w-8 animate-spin" /> : collection?.title}
                 </CardTitle>
                 <CardDescription className="md:text-lg text-muted-foreground pt-2 h-14">
-                   {collection?.description}
+                   {loading ? "Generating a special collection just for you..." : collection?.description}
                 </CardDescription>
               </CardHeader>
               <CardContent>

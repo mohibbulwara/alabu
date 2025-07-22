@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { db } from '@/firebase';
-import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 
 export default function OrdersPage() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -26,20 +26,12 @@ export default function OrdersPage() {
 
     const ordersQuery = query(
       collection(db, 'orders'), 
-      where('buyerId', '==', user.id)
-      // NOTE: Removed orderBy('createdAt', 'desc') to avoid needing a composite index in Firestore.
-      // Sorting is now handled client-side.
+      where('buyerId', '==', user.id),
+      orderBy('createdAt', 'desc')
     );
     
     const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
-      const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-      // Sort orders by date here in the client
-      orders.sort((a, b) => {
-          const timeA = a.createdAt ? (a.createdAt as Timestamp).toMillis() : 0;
-          const timeB = b.createdAt ? (b.createdAt as Timestamp).toMillis() : 0;
-          return timeB - timeA;
-      });
-      setUserOrders(orders);
+      setUserOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Order));
     });
 
     return () => unsubscribe();
@@ -92,7 +84,7 @@ export default function OrdersPage() {
                     <div key={item.id} className="flex items-center justify-between py-3">
                       <div className="flex items-center gap-4">
                         <Image
-                          src={item.images[0]}
+                          src={item.image}
                           alt={item.name}
                           width={64}
                           height={64}

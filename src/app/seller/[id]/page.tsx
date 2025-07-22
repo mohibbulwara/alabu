@@ -3,34 +3,29 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { notFound, useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ProductCard from '@/components/product-card';
 import { MapPin } from 'lucide-react';
-import { getProducts } from '@/lib/services/product-service';
+import { getProductsBySeller } from '@/lib/services/product-service';
 import { getUserById } from '@/lib/services/user-service';
 import type { Product, User } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import MapCard from '@/components/map-card';
-import SellerStatusBadge from '@/components/seller-status-badge';
 
-export default function SellerProfilePage() {
-  const params = useParams();
-  const sellerId = params.id as string;
+export default function SellerProfilePage({ params }: { params: { id: string } }) {
   const [seller, setSeller] = useState<User | null>(null);
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!sellerId) return;
-    
     const fetchSellerData = async () => {
       setLoading(true);
       try {
-        const fetchedSeller = await getUserById(sellerId);
+        const fetchedSeller = await getUserById(params.id);
         if (fetchedSeller && fetchedSeller.role === 'seller') {
           setSeller(fetchedSeller);
-          const products = await getProducts({ sellerId: fetchedSeller.id });
+          const products = await getProductsBySeller(fetchedSeller.id);
           setSellerProducts(products);
         } else {
           notFound();
@@ -44,7 +39,7 @@ export default function SellerProfilePage() {
     };
 
     fetchSellerData();
-  }, [sellerId]);
+  }, [params.id]);
   
   if (loading) {
       return (
@@ -87,15 +82,12 @@ export default function SellerProfilePage() {
         <div className="text-center md:text-left">
           <h1 className="font-headline text-4xl font-bold text-primary">{seller.shopName}</h1>
           <p className="text-lg text-muted-foreground">by {seller.name}</p>
-          <div className="flex items-center justify-center md:justify-start gap-2 mt-2 text-muted-foreground">
-            {seller.shopAddress && (
-              <>
-                <MapPin className="h-4 w-4" />
-                <span>{seller.shopAddress}</span>
-              </>
-            )}
-          </div>
-           {seller.status && <SellerStatusBadge status={seller.status} className="mt-4" />}
+          {seller.shopAddress && (
+            <div className="flex items-center justify-center md:justify-start gap-2 mt-2 text-muted-foreground">
+              <MapPin className="h-4 w-4" />
+              <span>{seller.shopAddress}</span>
+            </div>
+          )}
         </div>
       </div>
       

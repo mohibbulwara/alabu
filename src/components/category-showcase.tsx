@@ -1,66 +1,14 @@
 
 'use client';
 
-import { Card } from '@/components/ui/card';
 import Link from 'next/link';
+import { Sparkles } from 'lucide-react';
+import Image from 'next/image';
+import { Card } from './ui/card';
 import { motion } from 'framer-motion';
-import {
-  ArrowRight,
-  Pizza,
-  UtensilsCrossed,
-  Flame,
-  LayoutGrid,
-  Utensils,
-  Soup,
-  Salad,
-  CakeSlice,
-  CupSoda,
-  CookingPot,
-  Wheat,
-  Voicemail,
-  Fish,
-  Vegan,
-  Sandwich,
-  Coffee,
-  IceCream,
-  Popcorn
-} from 'lucide-react';
-import type { ComponentType } from 'react';
+import { categories } from '@/lib/data';
 
-interface Category {
-  name: string;
-  // The hint property is no longer used but kept for data consistency.
-  hint: string; 
-}
-
-interface CategoryShowcaseProps {
-  categories: Category[];
-}
-
-const iconMap: { [key: string]: ComponentType<{ className?: string }> } = {
-  Burger: Utensils,
-  Pizza: Pizza,
-  Biryani: UtensilsCrossed,
-  Kebab: Flame,
-  'Set Menu': LayoutGrid,
-  Pasta: Utensils,
-  Soup: Soup,
-  Salad: Salad,
-  Dessert: CakeSlice,
-  Drinks: CupSoda,
-  Curry: CookingPot,
-  Rice: Wheat,
-  Noodles: Voicemail,
-  Seafood: Fish,
-  Vegetarian: Vegan,
-  Sandwich: Sandwich,
-  Breakfast: Coffee,
-  Appetizers: Popcorn,
-  Coffee: Coffee,
-  'Ice Cream': IceCream,
-};
-
-export default function CategoryShowcase({ categories }: CategoryShowcaseProps) {
+export default function CategoryShowcase() {
   
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -73,36 +21,45 @@ export default function CategoryShowcase({ categories }: CategoryShowcaseProps) 
     >
       <div className="container mx-auto">
         <div className="text-center mb-12">
-            <h2 className="font-headline text-3xl font-extrabold md:text-5xl text-shadow-lg text-foreground pb-2">
-              Shop By Category
-            </h2>
+            <div className="inline-block relative">
+              <h2 className="font-headline text-3xl font-extrabold md:text-5xl text-shadow-lg text-foreground pb-2">
+                <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-primary inline-block mr-4 mb-2" />
+                  Shop By Category
+                <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-primary inline-block ml-4 mb-2" />
+              </h2>
+            </div>
             <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Click on a category to explore delicious options from our best kitchens.</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-          {categories.map((category, index) => {
-             const Icon = iconMap[category.name] || Utensils;
-             return (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+          {categories.map((category, index) => (
              <motion.div
               key={category.name}
               variants={cardVariants}
               initial="hidden"
               whileInView="visible"
-              transition={{ duration: 0.5, delay: index * 0.05 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
             >
-              <Link href={`/dishes?category=${encodeURIComponent(category.name)}`} className="group block h-full">
-                <Card className="h-full overflow-hidden text-center transition-all duration-300 group-hover:border-primary/50 group-hover:shadow-lg group-hover:-translate-y-1">
-                    <div className="bg-muted/40 p-6 flex items-center justify-center transition-colors duration-300 group-hover:bg-primary/10">
-                        <Icon className="h-12 w-12 text-muted-foreground transition-all duration-300 group-hover:text-primary group-hover:scale-110" />
+              <Link href={`/products?category=${category.name}`} className="group block">
+                <Card className="overflow-hidden text-center transition-all duration-300 hover:shadow-primary/20 hover:-translate-y-1">
+                    <div className="aspect-square relative overflow-hidden">
+                        <Image
+                            src={category.image}
+                            alt={category.name}
+                            width={400}
+                            height={400}
+                            className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-110"
+                            data-ai-hint={category.hint}
+                        />
                     </div>
                     <div className="p-4 bg-card">
-                        <h3 className="font-headline text-xl font-bold text-foreground transition-colors duration-300 group-hover:text-primary">{category.name}</h3>
+                        <h3 className="font-headline text-xl font-bold text-foreground group-hover:text-primary transition-colors">{category.name}</h3>
                     </div>
                 </Card>
               </Link>
             </motion.div>
-          )})}
+          ))}
         </div>
       </div>
     </section>

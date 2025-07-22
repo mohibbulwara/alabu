@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, Mail, Store, MapPin, Loader2, UploadCloud, Phone, Copy } from 'lucide-react';
+import { User, Mail, Store, MapPin, Loader2, UploadCloud, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,16 +58,6 @@ export default function ProfilePage() {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-    }
-  };
-
-  const handleCopy = async (textToCopy: string, fieldName: string) => {
-    try {
-      await navigator.clipboard.writeText(textToCopy);
-      toast({ title: 'Copied!', description: `${fieldName} copied to clipboard.` });
-    } catch (err) {
-      toast({ title: 'Error', description: `Failed to copy ${fieldName}.`, variant: 'destructive' });
-      console.error('Failed to copy text: ', err);
     }
   };
 
@@ -168,26 +158,14 @@ export default function ProfilePage() {
                     <CardDescription>{user.role === 'seller' ? 'Seller Account' : 'Buyer Account'}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 px-6 pb-6">
-                    <div className="flex items-center justify-between gap-4 p-3 rounded-md bg-muted/50 border">
-                        <div className="flex items-center gap-4 truncate">
-                            <Mail className="h-5 w-5 text-primary flex-shrink-0" />
-                            <span className="text-sm truncate">{user.email}</span>
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => handleCopy(user.email, 'Email')}>
-                            <Copy className="h-4 w-4" />
-                            <span className="sr-only">Copy Email</span>
-                        </Button>
+                    <div className="flex items-center gap-4 p-3 rounded-md bg-muted/50 border">
+                        <Mail className="h-5 w-5 text-primary" />
+                        <span className="text-sm truncate">{user.email}</span>
                     </div>
                     {user.phone && (
-                       <div className="flex items-center justify-between gap-4 p-3 rounded-md bg-muted/50 border">
-                           <div className="flex items-center gap-4 truncate">
-                                <Phone className="h-5 w-5 text-primary flex-shrink-0" />
-                                <span className="text-sm">{user.phone}</span>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => handleCopy(user.phone!, 'Phone number')}>
-                                <Copy className="h-4 w-4" />
-                                <span className="sr-only">Copy Phone Number</span>
-                            </Button>
+                       <div className="flex items-center gap-4 p-3 rounded-md bg-muted/50 border">
+                            <Phone className="h-5 w-5 text-primary" />
+                            <span className="text-sm">{user.phone}</span>
                        </div>
                     )}
                     {user.role === 'seller' && user.shopName && (

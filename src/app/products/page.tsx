@@ -1,21 +1,14 @@
 
-
-import DishList from '@/components/dish-list';
-import { getDishes } from '@/lib/services/dish-service';
+import ProductList from '@/components/product-list';
+import { getProducts } from '@/lib/services/product-service';
 import { getAllSellers } from '@/lib/services/user-service';
-import { Suspense } from 'react';
 
 export default async function ProductsPage() {
-  const [dishes, sellers] = await Promise.all([
-    getDishes(),
+  // Fetch both products and sellers in parallel
+  const [products, sellers] = await Promise.all([
+    getProducts(),
     getAllSellers()
   ]);
 
-  return (
-    <div className="container mx-auto py-8">
-        <Suspense>
-           <DishList allDishes={dishes} allSellers={sellers} />
-        </Suspense>
-    </div>
-  );
+  return <ProductList products={products} allSellers={sellers} />;
 }

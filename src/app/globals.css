@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -43,39 +42,33 @@
   }
 
   .dark {
-    --background: 240 10% 3.9%; /* Deep Dark Purple */
+    --background: 224 71% 4%; /* Deep, dark navy */
     --foreground: 210 40% 98%;
     
-    --card: 240 4% 10%; /* Slightly lighter dark purple */
+    --card: 224 71% 9%; /* Slightly lighter navy */
     --card-foreground: 210 40% 98%;
     
-    --popover: 240 10% 3.9%;
+    --popover: 224 71% 4%;
     --popover-foreground: 210 40% 98%;
     
-    --primary: 340 90% 65%; /* Vibrant Sweet Pink */
-    --primary-foreground: 340 100% 15%;
+    --primary: 217 91% 60%; /* Electric Blue */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 240 4% 15%;
+    --secondary: 215 28% 17%;
     --secondary-foreground: 210 40% 98%;
     
-    --muted: 240 4% 15%;
+    --muted: 215 28% 17%;
     --muted-foreground: 215 21% 65%;
     
-    --accent: 240 4% 20%;
+    --accent: 215 28% 17%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 240 4% 15%;
-    --input: 240 4% 12%;
-    --ring: 340 90% 65%;
-
-    --chart-1: 340 82% 76%;
-    --chart-2: 190 70% 65%;
-    --chart-3: 45 90% 65%;
-    --chart-4: 280 85% 75%;
-    --chart-5: 158 75% 65%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 217 91% 60%;
   }
 }
 
